@@ -1,31 +1,40 @@
 from django.shortcuts import render,redirect
 from owner.models import Books
-from django.views.generic import View
-from customer.forms import UserRegistrationForm,PasswordResetForm
-from customer.forms import LoginForm
+from django.views.generic import View,CreateView,ListView,UpdateView
+from customer.forms import UserRegistrationForm,PasswordResetForm,LoginForm
 from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth.models import User
+from django.urls import reverse_lazy
+from customer.models import Carts
 
 # Create your views here.
 
-class CustomerIndex(View):
+class CustomerIndex(ListView):
+    model = Books
+    template_name = "customer.html"
+    context_object_name = "books"
 
-    def get(self,request,*args,**kwargs):
-        qs=Books.objects.all()
-        return render(request,"customer.html",{"books":qs})
+    # def get(self,request,*args,**kwargs):
+    #     qs=Books.objects.all()
+    #     return render(request,"customer.html",{"books":qs})
 
-class SignUpView(View):
-    def get(self,request,*args,**kwargs):
-        form=UserRegistrationForm()
-        return render(request,"signup.html",{"form":form})
-
-    def post(self,request,*args,**kwargs):
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("login")
-
-        else:
-            return render(request,"signup.html",{"form":form})
+class SignUpView(CreateView):
+    model = User
+    form_class = UserRegistrationForm
+    template_name = "signup.html"
+    success_url = reverse_lazy("login")
+    # def get(self,request,*args,**kwargs):
+    #     form=UserRegistrationForm()
+    #     return render(request,"signup.html",{"form":form})
+    #
+    # def post(self,request,*args,**kwargs):
+    #     form = UserRegistrationForm(request.POST)
+    #     if form.is_valid():
+    #         form.save()
+    #         return redirect("login")
+    #
+    #     else:
+    #         return render(request,"signup.html",{"form":form})
 
 class LoginView(View):
     def get(self,request,*args,**kwargs):
@@ -49,7 +58,8 @@ def signout(request):
     logout(request)
     return redirect("login")
 
-class PasswordResetView(View):
+class PasswordResetView(UpdateView):
+
     def get(self,request):
         form=PasswordResetForm()
         return render(request,'password_reset.html',{'form':form})
@@ -67,3 +77,17 @@ class PasswordResetView(View):
                 return render(request, 'password_reset.html', {'form': form})
         else:
             return render(request,'password_reset.html',{'form':form})
+
+def add_to_cart(request,id):
+    book=Books.objects.get(id=id)
+    user=request.user
+    cart=Carts(product=book,user=user)
+    cart.save()
+    return redirect("custhome")
+
+class ViewMyCart(ListView):
+    model = Carts
+    template_name = "mycart.html"
+    context_object_name = "carts"
+    def get_queryset(self):
+        return Carts.objects.filter(user=self.request.user).order_by("-date")
