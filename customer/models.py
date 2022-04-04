@@ -1,4 +1,4 @@
-import datetime
+from datetime import timedelta,datetime
 
 from django.db import models
 from owner.models import Books
@@ -19,10 +19,10 @@ class Carts(models.Model):
 class Orders(models.Model):
     product=models.ForeignKey(Books,on_delete=models.CASCADE)
     user=models.ForeignKey(User,on_delete=models.CASCADE)
-    address=models.TextField()
-    date=models.DateTimeField(auto_now_add=True)
-    edate=datetime.timedelta(days=5)
-    expected_delivery_date=models.DateField(default=edate)
+    address=models.CharField(max_length=120)
+    date=models.DateTimeField(auto_now_add=True,null=True)
+    edate=datetime.today()+timedelta(days=5)
+    expected_delivery_date=models.DateField(default=edate,null=True)
     options=(
         ("order_placed","order_placed"),
         ("dispatched","dispatched"),

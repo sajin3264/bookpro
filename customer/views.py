@@ -1,12 +1,13 @@
 from django.shortcuts import render,redirect
 from owner.models import Books
 from django.views.generic import View,CreateView,ListView,UpdateView
-from customer.forms import UserRegistrationForm,PasswordResetForm,LoginForm
+from customer.forms import UserRegistrationForm,PasswordResetForm,LoginForm,OrderForm
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.models import User
 from django.urls import reverse_lazy
-from customer.models import Carts
+from customer.models import Carts,Orders
 from django.contrib import messages
+
 
 # Create your views here.
 
@@ -100,3 +101,24 @@ def remove_from_cart(request,*args,**kwargs):
     cart.save()
     messages.error(request,"Item is removed")
     return redirect("custhome")
+
+class OrderCreateView(CreateView):
+    form_class = OrderForm
+    template_name = "order_create.html"
+    model = Orders
+    def post(self, request, *args, **kwargs):
+        cart_id=kwargs.get("c_id")
+        product_id=kwargs.get("p_id")
+        form=OrderForm(request.POST)
+        if form.is_valid():
+            order=form.save(commit=False)
+            product=Books.objects.get(id=product_id)
+            user=request.user
+            order.product=product
+            order.user=request.user
+            order.save()
+            cart=Carts.objects.get(id=cart_id)
+            cart.status="orderplaced"
+            cart.save()
+            messages.success(request,"Your order has been placed")
+        return redirect("custhome")
