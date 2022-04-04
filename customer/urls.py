@@ -9,4 +9,5 @@ urlpatterns=[
     path("accounts/password/reset", views.PasswordResetView.as_view(),name="passwordreset"),
     path("carts/items/add/<int:id>",views.add_to_cart,name="addtocart"),
     path("carts/all",views.ViewMyCart.as_view(),name="viewmycart"),
+    path("carts/remove/<int:id>",views.remove_from_cart,name="removeitem")
 ]

@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.models import User
 from django.urls import reverse_lazy
 from customer.models import Carts
+from django.contrib import messages
 
 # Create your views here.
 
@@ -83,6 +84,7 @@ def add_to_cart(request,id):
     user=request.user
     cart=Carts(product=book,user=user)
     cart.save()
+    messages.success(request,"Item added to Cart")
     return redirect("custhome")
 
 class ViewMyCart(ListView):
@@ -90,4 +92,11 @@ class ViewMyCart(ListView):
     template_name = "mycart.html"
     context_object_name = "carts"
     def get_queryset(self):
-        return Carts.objects.filter(user=self.request.user).order_by("-date")
+        return Carts.objects.filter(user=self.request.user).exclude(status="cancelled").order_by("-date")
+
+def remove_from_cart(request,*args,**kwargs):
+    cart=Carts.objects.get(id=kwargs["id"])
+    cart.status="cancelled"
+    cart.save()
+    messages.error(request,"Item is removed")
+    return redirect("custhome")
