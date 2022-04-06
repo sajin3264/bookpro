@@ -1,8 +1,9 @@
 from django.shortcuts import render,redirect
 from django.urls import reverse_lazy
 from owner.forms import BookForm
-from django.views.generic import View,ListView,CreateView,DetailView,UpdateView
+from django.views.generic import View,ListView,CreateView,DetailView,UpdateView,TemplateView
 from owner.models import Books
+from customer.models import Orders
 
 class AddBook(CreateView):
     model = Books
@@ -64,6 +65,18 @@ class BookUpdateView(UpdateView):
     template_name = "book_update.html"
     form_class = BookForm
     success_url = reverse_lazy("allbooks")
+    pk_url_kwarg = "id"
+
+class DashBoardView(TemplateView):
+    template_name = "dashboard.html"
+    def get(self,request,*args,**kwargs):
+        new_orders=Orders.objects.filter(status="order_placed")
+        return render(request,self.template_name,{"new_orders":new_orders})
+
+class OrderDetailView(DetailView):
+    model = Orders
+    template_name = "order_detail.html"
+    context_object_name = "order"
     pk_url_kwarg = "id"
 
     # def get(self,request,*args,**kwargs):

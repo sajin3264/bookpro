@@ -56,7 +56,7 @@ class LoginView(View):
 
             else:
                 print('Not a valid user')
-                return render(request, "login.html", {"form": form})
+                return render(request,"login.html",{"form": form})
 def signout(request):
     logout(request)
     return redirect("login")
@@ -98,7 +98,8 @@ class ViewMyCart(ListView):
     def get(self,request,*args,**kwargs):
         carts=Carts.objects.filter(user=self.request.user).exclude(status="cancelled").order_by("-date")
         total=Carts.objects.filter(user=request.user).exclude(status="cancelled").aggregate(Sum("product__amount"))
-        context={"carts":carts,"total":total}
+        gtotal=total.get("product__amount__sum")
+        context={"carts":carts,"total":gtotal}
         return render(request,"mycart.html",context)
 
 
